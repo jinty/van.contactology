@@ -6,11 +6,13 @@ setup(name="van.contactology",
       packages=find_packages(),
       description="Contactology API for Twisted",
       namespace_packages=["van"],
-      install_requires = [
+      install_requires=[
           'setuptools',
           'Twisted',
           'simplejson',
                         ],
-      include_package_data = True,
-      zip_safe = False,
+      test_suite="van.contactology.tests",
+      tests_require=['mock'],
+      include_package_data=True,
+      zip_safe=False,
       )
