@@ -64,10 +64,9 @@ class Contactology(object):
         if self._logio:
             log.msg("RECEIVED: %s" % pformat(resp))
         # check for errors
-        if not isinstance(resp, dict):
-            raise Exception("Expected dict from contactology, got %s" % resp)
-        if resp.get('result', None) == 'error':
-            raise APIError(resp['code'], resp['message'])
+        if isinstance(resp, dict):
+            if resp.get('result', None) == 'error':
+                raise APIError(resp['code'], resp['message'])
         yield defer.returnValue(resp)
 
 if __name__ == '__main__':
