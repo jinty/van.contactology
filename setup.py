@@ -7,6 +7,7 @@ setup(name="van.contactology",
       description="Contactology API for Twisted",
       namespace_packages=["van"],
       install_requires=[
+          'pyOpenSSL',
           'setuptools',
           'Twisted',
           'simplejson',
