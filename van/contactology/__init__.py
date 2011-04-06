@@ -43,7 +43,6 @@ class Contactology(object):
 
     @defer.inlineCallbacks
     def _call(self, method, **kw):
-        kw.update({'key': self.key, 'method': method})
         if self._logio:
             self._log_query(kw)
         # serialize non-strings using json
@@ -51,12 +50,13 @@ class Contactology(object):
             if not isinstance(v, str):
                 v = json.dumps(v)
                 kw[k] = v
+        # add our preset arguments
+        kw.update({'key': self.key, 'method': method})
         # construct request data
         postdata = urllib.urlencode(kw)
         schema = self.useHTTPS and 'https' or 'http'
         url = '%s://%s%s' % (schema, self.host, self.path)
         headers = {"Content-type": "application/x-www-form-urlencoded",
-                   "Accept": "text/plain",
                    "User-Agent": "Twisted Wrapper %s" % __version__}
         resp = yield getPage(url, method='POST', headers=headers, postdata=postdata)
         # de-serialize response

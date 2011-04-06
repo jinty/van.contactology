@@ -4,29 +4,44 @@ from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 
 from mock import patch, Mock
-from van.contactology import Contactology, APIError
+from van.contactology import Contactology, APIError, __version__
 
 class TestProxy(TestCase):
 
     @defer.inlineCallbacks
-    def test_list_return(self):
+    def _call_once(self, api_key, result, method, *args, **kw):
         patcher = patch('van.contactology.getPage')
         getPage = patcher.start()
         try:
-            proxy = Contactology('API Key')
-            getPage.return_value = dumps([])
-            out = yield proxy.Campaign_Find()
-            yield self.assertEquals(out, [])
+            getPage.return_value = dumps(result)
+            proxy = Contactology(api_key)
+            method = getattr(proxy, method)
+            out = yield method(*args, **kw)
         finally:
             patcher.stop()
-    
+        defer.returnValue((getPage, out))
+
+    @defer.inlineCallbacks
+    def test_list_return(self):
+        getPage, out = yield self._call_once('API Key', [], 'Campaign_Find')
+        self.assertEquals(out, [])
+
+    @defer.inlineCallbacks
+    def test_call_args(self):
+        getPage, out = yield self._call_once('API Key', [], 'Campaign_Find')
+        self.assertEquals(getPage.call_count, 1)
+        self.assertEquals(getPage.call_args, (('https://api.emailcampaigns.net/2/REST/',),
+                                                 {'headers': {'Content-type': 'application/x-www-form-urlencoded',
+                                                              'User-Agent': 'Twisted Wrapper %s' % __version__},
+                                                  'method': 'POST',
+                                                  'postdata': 'method=Campaign_Find&key=API+Key'}))
+
     @defer.inlineCallbacks
     def test_api_error(self):
-        patcher = patch('van.contactology.getPage')
-        getPage = patcher.start()
-        try:
-            proxy = Contactology('API Key')
-            getPage.return_value = dumps({'code': 221, 'message': 'Key not found', 'result': 'error'})
-            yield self.failUnlessFailure(proxy.List_Get_Active_Lists(), APIError)
-        finally:
-            patcher.stop()
+        d = self._call_once('API Key', {'code': 221, 'message': 'Key not found', 'result': 'error'}, 'List_Get_Active_Lists')
+        yield self.failUnlessFailure(d, APIError)
+
+    @defer.inlineCallbacks
+    def test_unicode_api_key(self):
+        getPage, out = yield self._call_once(u'unicode API Key', [], 'Campaign_Find')
+        self.assertEquals(getPage.call_args[1]['postdata'], 'method=Campaign_Find&key=unicode+API+Key')
