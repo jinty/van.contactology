@@ -11,6 +11,7 @@ from twisted.web.client import getPage
 from twisted.internet import defer
 from twisted.python import log
 
+__version__ = "1.0dev"
 
 class APIError(Exception):
     """Base class for all api errors from contactology"""
@@ -25,7 +26,6 @@ class Contactology(object):
     """Proxy object"""
     host = "api.emailcampaigns.net"
     path = "/2/REST/"
-    version = "0.2.1"
     _logio = False
     
     def __init__(self, key, useHTTPS=True):
@@ -57,7 +57,7 @@ class Contactology(object):
         url = '%s://%s%s' % (schema, self.host, self.path)
         headers = {"Content-type": "application/x-www-form-urlencoded",
                    "Accept": "text/plain",
-                   "User-Agent": "Twisted Wrapper %s" % self.version}
+                   "User-Agent": "Twisted Wrapper %s" % __version__}
         resp = yield getPage(url, method='POST', headers=headers, postdata=postdata)
         # de-serialize response
         resp = json.loads(resp)
