@@ -1,10 +1,14 @@
 import unittest
+from cgi import parse_qsl
 from simplejson import dumps
 from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 
 from mock import patch, Mock
 from van.contactology import Contactology, APIError, __version__
+
+def _parse_post(callargs):
+    return sorted(parse_qsl(callargs['postdata'], True, True))
 
 class TestProxy(TestCase):
 
@@ -45,3 +49,8 @@ class TestProxy(TestCase):
     def test_unicode_api_key(self):
         getPage, out = yield self._call_once(u'unicode API Key', [], 'Campaign_Find')
         self.assertEquals(getPage.call_args[1]['postdata'], 'method=Campaign_Find&key=unicode+API+Key')
+
+    @defer.inlineCallbacks
+    def test_unicode_argument(self):
+        getPage, out = yield self._call_once('API Key', [], 'Contact_Get', email=u"a@b.c")
+        self.assertEquals(_parse_post(getPage.call_args[1]), [('email', 'a@b.c'), ('key', 'API Key'), ('method', 'Contact_Get')])

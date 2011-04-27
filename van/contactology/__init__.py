@@ -47,6 +47,8 @@ class Contactology(object):
             self._log_query(kw)
         # serialize non-strings using json
         for k, v in kw.items():
+            if isinstance(v, unicode):
+                kw[k] = v = v.encode('utf-8')
             if not isinstance(v, str):
                 v = json.dumps(v)
                 kw[k] = v
