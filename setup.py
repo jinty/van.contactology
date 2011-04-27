@@ -8,10 +8,14 @@ _init = open(_init, 'r').read()
 
 VERSION = re.search(r'^__version__ = "(.*)"', _init, re.MULTILINE).group(1)
 
+README = open(os.path.join(_here, 'README.txt'), 'r').read()
+
 setup(name="van.contactology",
       version=VERSION,
       packages=find_packages(),
       description="Contactology API for Twisted",
+      author_email='brian@vanguardistas.net',
+      long_description=README,
       namespace_packages=["van"],
       install_requires=[
           'pyOpenSSL',
