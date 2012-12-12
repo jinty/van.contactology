@@ -1,11 +1,15 @@
 import unittest
 from cgi import parse_qsl
-from simplejson import dumps
 from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 
 from mock import patch, Mock
 from van.contactology import Contactology, APIError, __version__
+
+try:
+    from json import dumps
+except ImportError:
+    from simplejson import dumps
 
 def _parse_post(callargs):
     return sorted(parse_qsl(callargs['postdata'], True, True))

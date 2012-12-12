@@ -10,6 +10,16 @@ VERSION = re.search(r'^__version__ = "(.*)"', _init, re.MULTILINE).group(1)
 
 README = open(os.path.join(_here, 'README.txt'), 'r').read()
 
+install_requires = [
+  'pyOpenSSL',
+  'setuptools',
+  'Twisted']
+
+import sys
+if sys.version_info < (2, 6):
+    # python 2.5 and below
+    install_requires.append('simplejson')
+
 setup(name="van.contactology",
       version=VERSION,
       packages=find_packages(),
@@ -17,12 +27,7 @@ setup(name="van.contactology",
       author_email='brian@vanguardistas.net',
       long_description=README,
       namespace_packages=["van"],
-      install_requires=[
-          'pyOpenSSL',
-          'setuptools',
-          'Twisted',
-          'simplejson',
-                        ],
+      install_requires=install_requires,
       test_suite="van.contactology.tests",
       tests_require=['mock'],
       include_package_data=True,
