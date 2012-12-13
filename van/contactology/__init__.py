@@ -32,8 +32,8 @@ class Contactology(object):
         self.key = key
         self.useHTTPS = useHTTPS
 
-    def _log_query(self, r):
-        log.msg("SENT: %s" % pformat(r))
+    def _log_query(self, method, r):
+        log.msg("SENT: %s: %s" % (method, pformat(r)))
         return r
 
     def __getattr__(self, name):
@@ -44,7 +44,7 @@ class Contactology(object):
     @defer.inlineCallbacks
     def _call(self, method, **kw):
         if self._logio:
-            self._log_query(kw)
+            self._log_query(method, kw)
         # serialize non-strings using json
         for k, v in kw.items():
             if isinstance(v, unicode):
