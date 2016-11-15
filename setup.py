@@ -13,12 +13,8 @@ README = open(os.path.join(_here, 'README.txt'), 'r').read()
 install_requires = [
   'pyOpenSSL',
   'setuptools',
+  'six',
   'Twisted']
-
-import sys
-if sys.version_info < (2, 6):
-    # python 2.5 and below
-    install_requires.append('simplejson')
 
 setup(name="van.contactology",
       version=VERSION,

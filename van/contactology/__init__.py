@@ -1,17 +1,15 @@
 """A generic API for contactology"""
+from __future__ import print_function
 
-import urllib
+from six.moves.urllib.parse import urlencode
 from pprint import pformat
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 from twisted.web.client import getPage
 from twisted.internet import defer
 from twisted.python import log
 
-__version__ = "1.0"
+__version__ = "2.0"
 
 class APIError(Exception):
     """Base class for all api errors from contactology"""
@@ -46,8 +44,8 @@ class Contactology(object):
         if self._logio:
             self._log_query(method, kw)
         # serialize non-strings using json
-        for k, v in kw.items():
-            if isinstance(v, unicode):
+        for k, v in list(kw.items()):
+            if isinstance(v, str):
                 kw[k] = v = v.encode('utf-8')
             if not isinstance(v, str):
                 v = json.dumps(v)
@@ -55,7 +53,7 @@ class Contactology(object):
         # add our preset arguments
         kw.update({'key': self.key, 'method': method})
         # construct request data
-        postdata = urllib.urlencode(kw)
+        postdata = urlencode(kw)
         schema = self.useHTTPS and 'https' or 'http'
         url = '%s://%s%s' % (schema, self.host, self.path)
         headers = {"Content-type": "application/x-www-form-urlencoded",
@@ -79,11 +77,11 @@ if __name__ == '__main__':
     def test():
         try:
             resp = yield proxy.List_Get_Active_Lists()
-            print resp
+            print(resp)
             resp = yield proxy.List_Get_Active_Lists(optionalParameters={'offset': 1})
-            print resp
+            print(resp)
             resp = yield proxy.List_Get_Info(listId=1)
-            print resp
+            print(resp)
         finally:
             reactor.stop()
     reactor.callWhenRunning(test)
