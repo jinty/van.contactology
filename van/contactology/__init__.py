@@ -1,6 +1,7 @@
 """A generic API for contactology"""
 from __future__ import print_function
 
+import six
 from six.moves.urllib.parse import urlencode
 from pprint import pformat
 import json
@@ -9,7 +10,7 @@ from twisted.web.client import getPage
 from twisted.internet import defer
 from twisted.python import log
 
-__version__ = "2.0"
+__version__ = "3.0"
 
 class APIError(Exception):
     """Base class for all api errors from contactology"""
@@ -45,22 +46,23 @@ class Contactology(object):
             self._log_query(method, kw)
         # serialize non-strings using json
         for k, v in list(kw.items()):
-            if isinstance(v, str):
-                kw[k] = v = v.encode('utf-8')
+            if six.PY2 and isinstance(v, six.text_type):
+                v = v.encode('utf-8')
             if not isinstance(v, str):
                 v = json.dumps(v)
-                kw[k] = v
+            kw[k] = v
         # add our preset arguments
         kw.update({'key': self.key, 'method': method})
         # construct request data
-        postdata = urlencode(kw)
+        postdata = urlencode(sorted(kw.items())).encode('utf-8')
         schema = self.useHTTPS and 'https' or 'http'
         url = '%s://%s%s' % (schema, self.host, self.path)
-        headers = {"Content-type": "application/x-www-form-urlencoded",
-                   "User-Agent": "Twisted Wrapper %s" % __version__}
-        resp = yield getPage(url, method='POST', headers=headers, postdata=postdata)
+        url = url.encode('utf-8')
+        headers = {b"Content-type": b"application/x-www-form-urlencoded",
+                   b"User-Agent": b"Twisted Wrapper %s" % str(__version__).encode('utf-8')}
+        resp = yield getPage(url, method=b'POST', headers=headers, postdata=postdata)
         # de-serialize response
-        resp = json.loads(resp)
+        resp = json.loads(resp.decode('utf-8'))
         if self._logio:
             log.msg("RECEIVED: %s" % pformat(resp))
         # check for errors

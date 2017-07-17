@@ -12,7 +12,7 @@ except ImportError:
     from simplejson import dumps
 
 def _parse_post(callargs):
-    return sorted(parse_qsl(callargs['postdata'], True, True))
+    return sorted(parse_qsl(callargs['postdata'].decode('utf-8'), True, True))
 
 class TestProxy(TestCase):
 
@@ -21,7 +21,7 @@ class TestProxy(TestCase):
         patcher = patch('van.contactology.getPage')
         getPage = patcher.start()
         try:
-            getPage.return_value = dumps(result)
+            getPage.return_value = dumps(result).encode('ascii')
             proxy = Contactology(api_key)
             method = getattr(proxy, method)
             out = yield method(*args, **kw)
@@ -38,11 +38,11 @@ class TestProxy(TestCase):
     def test_call_args(self):
         getPage, out = yield self._call_once('API Key', [], 'Campaign_Find')
         self.assertEquals(getPage.call_count, 1)
-        self.assertEquals(getPage.call_args, (('https://api.emailcampaigns.net/2/REST/',),
-                                                 {'headers': {'Content-type': 'application/x-www-form-urlencoded',
-                                                              'User-Agent': 'Twisted Wrapper %s' % __version__},
-                                                  'method': 'POST',
-                                                  'postdata': 'method=Campaign_Find&key=API+Key'}))
+        self.assertEquals(getPage.call_args, ((b'https://api.emailcampaigns.net/2/REST/',),
+                                                 {'headers': {b'Content-type': b'application/x-www-form-urlencoded',
+                                                              b'User-Agent': b'Twisted Wrapper %s' % str(__version__).encode('ascii')},
+                                                  'method': b'POST',
+                                                  'postdata': b'key=API+Key&method=Campaign_Find'}))
 
     @defer.inlineCallbacks
     def test_api_error(self):
@@ -52,7 +52,7 @@ class TestProxy(TestCase):
     @defer.inlineCallbacks
     def test_unicode_api_key(self):
         getPage, out = yield self._call_once(u'unicode API Key', [], 'Campaign_Find')
-        self.assertEquals(getPage.call_args[1]['postdata'], 'method=Campaign_Find&key=unicode+API+Key')
+        self.assertEquals(getPage.call_args[1]['postdata'], b'key=unicode+API+Key&method=Campaign_Find')
 
     @defer.inlineCallbacks
     def test_unicode_argument(self):
